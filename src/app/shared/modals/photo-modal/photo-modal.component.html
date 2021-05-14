@@ -1,0 +1,17 @@
+<div style="display: flex; align-items: center; margin-bottom: 8px;">
+  <!-- <h2 mat-dialog-title>Photos?</h2> -->
+  <div style="margin-left: auto; margin-top: -15px; margin-right: 10px;">
+    <button mat-icon-button mat-dialog-close>
+      <mat-icon inline="true">close</mat-icon>
+    </button>
+  </div>
+</div>
+<mat-dialog-content>
+  <div style="display: flex; flex-direction: column; margin: 10px;">
+    <img #img [src]="data.photoUrl" />
+    <span style="margin-top: 8px;"><strong>by: {{data.photographer}}</strong></span>
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-button color="primary" style="margin-left: auto;" (click)="onDownload(img)">Download</button>
+</mat-dialog-actions>

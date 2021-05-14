@@ -1,51 +1,43 @@
-<header style="height: 100px; background-color: lightblue; width: 100%">
-  <div style="height: 100%; display: flex; justify-items: center; align-items: center">
-    <h1 style="margin-left: auto; margin-right: auto;">Apprentice Photo Gallery</h1>
-  </div>
-</header>
-<div class="container" style="overflow-y: auto;">
-  <div style="display: flex; flex-direction: row; flex-wrap: wrap">
-    <div style="margin-right: 15px">
-      <label for="search">Search:</label>
-      <input type="text" id="search" [(ngModel)]="search" />
-      <button id="seach-button" (click)="onSearch()">Go</button>
-    </div>
+<div class="container">
+  <header>
+    <h1>Apprentice Photo Gallery</h1>
+    <a href="https://www.pexels.com">
+      <span>Photos provided by Pexels</span>
+    </a>
+  </header>
 
-    <div style="margin-right: 15px">
-      <label for="pic-size">Size:</label>
-      <select id="pic-size" [(ngModel)]="picSize">
-        <option value="large2x">Very Large</option>
-        <option value="large">Large</option>
-        <option value="medium">Medium</option>
-        <option value="small">Small</option>
-        <option value="tiny">Very Small</option>
-      </select>
-    </div>
+  <div class="search-container">
+    <mat-form-field>
+      <mat-label>Search</mat-label>
+      <input type="search" matInput [(ngModel)]="search" placeholder="Enter Search String..." />
+      <mat-hint align="start">Ex: 'people', 'places' or 'animals'</mat-hint>
+      <button mat-icon-button matSuffix (click)="onSearch()" [attr.aria-label]="'Search for photos'">
+        <mat-icon>search</mat-icon>
+      </button>
+    </mat-form-field>
 
-    <div>
-      <button (click)="onNext()" style="margin-right: 10px">Next</button>
-      <button type="button" (click)="onPrev()">Prev</button>
-    </div>
-  </div>
-
-  <div style="display: flex; flex-direction: row; flex-wrap: wrap">
-    <div *ngFor="let p of photos$ | async">
-      <div style="display: flex; flex-direction: column; margin: 10px;">
-        <img *ngIf="picSize === 'tiny'" [src]="p.src.tiny" />
-        <img *ngIf="picSize === 'small'" [src]="p.src.small" />
-        <img *ngIf="picSize === 'medium'" [src]="p.src.medium" />
-        <img *ngIf="picSize === 'large'" [src]="p.src.large" />
-        <img *ngIf="picSize === 'large2x'" [src]="p.src.large2x" />
-        <span>by: {{p.photographer}}</span>
-      </div>
+    <div style="margin-left: 1rem;">
+      <button mat-icon-button type="button" style="margin-right: 2em;" (click)="onPrev()"
+        [disabled]="!this.photoStore.prevPage">
+        <mat-icon style="font-size: 2rem;">chevron_left</mat-icon>Prev
+      </button>
+      <button mat-icon-button (click)="onNext()" style="margin-right: 10px" [disabled]="!this.photoStore.nextPage">
+        Next<mat-icon style="font-size: 2rem;">chevron_right</mat-icon>
+      </button>
     </div>
   </div>
-</div>
 
-<footer style="position: fixed; background-color: lightblue; bottom: 0px; height: 75px; width: 100%">
-  <div style="height: 100%; display: flex; justify-items: center; align-items: center">
-    <a href="https://www.pexels.com" style="margin-left: auto; margin-right: auto;">Photos provided by Pexels
+  <div class="content" #scrollContent>
+    <div *ngFor="let p of photos$ | async" class="photo-container">
+      <span>Author: {{p.photographer}}</span>
+      <img [src]="p.src.small" (click)="onPhoto(p.src.large, p.photographer)" />
+    </div>
+  </div>
+
+  <footer>
+    <a href="https://www.pexels.com">
+      <span>Photos provided by</span>
       <img src="https://images.pexels.com/lib/api/pexels-white.png" alt="pexels" height="30px" width="auto" />
     </a>
-  </div>
-</footer>
+  </footer>
+</div>

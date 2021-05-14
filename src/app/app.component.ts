@@ -1,9 +1,11 @@
-import { Component, HostListener, OnDestroy, OnInit, Renderer2 } from '@angular/core';
-import { Observable, Subject } from 'rxjs';
-import { fromEvent } from 'rxjs/internal/observable/fromEvent';
-import { takeUntil } from 'rxjs/operators';
-import { PexelPhoto, PexelResponse } from './core/models';
-import { PhotoStoreService } from './core/services';
+import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
+import { fromEvent, Observable, Subject } from 'rxjs';
+import { debounceTime, filter, map, takeUntil } from 'rxjs/operators';
+
+import { PexelPhoto } from './core/models';
+import { PhotoStoreService } from './core/services/photo-store.service';
+import { PhotoModalComponent } from './shared/modals/photo-modal/photo-modal.component';
 
 // TODO	 need to get current page, & perPage from service
 @Component({
@@ -11,21 +13,33 @@ import { PhotoStoreService } from './core/services';
 	templateUrl: './app.component.html',
 	styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements OnDestroy {
+export class AppComponent implements AfterViewInit, OnDestroy {
+	@ViewChild('scrollContent') scrollEl: ElementRef<HTMLDivElement>;
+
 	search = '';
-	picSize = "small"
-	title = 'apprentic-test';
 	photos$: Observable<PexelPhoto[]>;
 	page = 1;
-	perPage = 10;
+	perPage = 30;
+	currentPage = 1;
+
+	destroy$ = new Subject<any>();
+
 	constructor(
-		public photoStore: PhotoStoreService
+		public photoStore: PhotoStoreService,
+		private matDialog: MatDialog
 	) {
-		this.photos$ = this.photoStore.photos$
+		this.photos$ = this.photoStore.photos$;
 	}
 
-	getYPosition(e: Event): number {
-		return (e.target as any).scrollingElement.scrollTop;
+	ngAfterViewInit() {
+		fromEvent(this.scrollEl.nativeElement, 'scroll').pipe(
+			debounceTime(300),
+			filter((e: any) => !!((e.target.scrollHeight - e.target.scrollTop) < (e.target.offsetHeight * 1.03))),
+			filter(() => !!((this.currentPage === this.photoStore.currentPage) && this.photoStore.nextPage)),
+			takeUntil(this.destroy$)
+		).subscribe((e) => {
+			this.onNext();
+		});
 	}
 
 	onSearch() {
@@ -33,25 +47,25 @@ export class AppComponent implements OnDestroy {
 	}
 
 	onNext() {
-		this.page += 1;
-		this.photoStore.getPhotos(this.search, this.page, this.perPage);
-	}
-
-	onPrev() {
-		if (this.page > 1) {
-			this.page -= 1;
-			this.photoStore.getPhotos(this.search, this.page, this.perPage);
+		if (this.photoStore.nextPage) {
+			this.currentPage += 1;
+			this.photoStore.getPhotoPage(this.photoStore.nextPage);
 		}
 	}
 
-	@HostListener('window:scroll', ['$event']) onScroll(e: Event): void {
-		let pos = (document.documentElement.scrollTop || document.body.scrollTop); // + document.documentElement.offsetHeight;
-		let max = document.documentElement.scrollHeight;
-
-		console.log(this.getYPosition(e));
+	onPrev() {
+		if (this.photoStore.prevPage) {
+			this.currentPage -= 1;
+			this.photoStore.getPhotoPage(this.photoStore.prevPage);
+		}
 	}
 
-	ngOnDestroy(): void {
-		// this.destroy.next();
+	onPhoto(photoUrl: string, photographer: string) {
+		this.matDialog.open(PhotoModalComponent, { data: { photoUrl, photographer } });
 	}
+
+	ngOnDestroy() {
+		this.destroy$.next();
+	}
+
 }
