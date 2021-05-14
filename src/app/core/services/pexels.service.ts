@@ -11,8 +11,10 @@ export class PexelsService {
 
 	constructor(private http: HttpClient) { }
 
-	getPictures(query: string = 'people', page: number = 1, perPage: number = 10): Observable<PexelResponse> {
+	getPictures(query: string = 'people', page: number = 1, perPage: number = 30): Observable<PexelResponse> {
 		return this.http.get<PexelResponse>(`${this.baseUrl}search?query=${query}&page=${page}&per_page=${perPage}`);
 	}
-
+	getPicturesByUrl(url: string): Observable<PexelResponse> {
+		return this.http.get<PexelResponse>(url);
+	}
 }
