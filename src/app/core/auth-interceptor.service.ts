@@ -11,6 +11,8 @@ export class AuthInterceptorService implements HttpInterceptor {
 			setHeaders: {
 				'Content-Type': 'application/json; charset=utf-8',
 				'Accept': 'application/json',
+				// 'Cache-Control': 'private',
+				// 'Access-Control-Allow-Origin': '*',
 				'Authorization': '563492ad6f91700001000001028874e4812b484f83604ff620b84439',
 			},
 		});

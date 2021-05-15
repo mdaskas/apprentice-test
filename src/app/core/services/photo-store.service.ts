@@ -7,44 +7,65 @@ import { PexelsService } from './pexels.service';
 	providedIn: 'root'
 })
 export class PhotoStoreService {
-	private pexelResponse: PexelResponse | null = null;
+	private readonly perPage = 30;
+	private readonly maxStoreEntries = 50;
+	private readonly baseUrl = 'https://api.pexels.com/v1/';
+
+	// This will be our store of PexelResponses.
+	private pexelStore: { [url: string]: PexelResponse } = {};
+
+	private currentSearch: string = '';
 
 	private _photos = new BehaviorSubject<PexelPhoto[]>([]);
 	photos$ = this._photos.asObservable();
 
-	private _currentPage: number = 0;
-	get currentPage(): number {
-		return this._currentPage;
+	private currentUrl: string = '';
+	get hasNextPage(): boolean {
+		return !!(this.currentUrl && !!this.pexelStore[this.currentUrl].next_page);
 	}
-
-	private _nextPage: string = '';
-	get nextPage(): string {
-		return this._nextPage;
-	}
-
-	private _prevPage: string = '';
-	get prevPage(): string {
-		return this._prevPage;
+	get hasPrevPage(): boolean {
+		return !!(this.currentUrl && !!this.pexelStore[this.currentUrl].prev_page);
 	}
 
 	constructor(private pexelsService: PexelsService) { }
 
-	getPhotos(query: string, page: number, perPage: number) {
+	getFirstPageWithQuery(query: string) {
+		query !== this.currentSearch && (this.pexelStore = {});
+		this.currentUrl = `${this.baseUrl}search?query=${query}&page=1&per_page=${this.perPage}`;
+
 		this.pexelsService
-			.getPictures(query, page, perPage)
+			.getPicturesByUrl(this.currentUrl)
 			.subscribe((res: PexelResponse) => this.storeResponse(res));
 	}
 
-	getPhotoPage(url: string) {
-		this.pexelResponse?.next_page && this.pexelsService.getPicturesByUrl(url)
-			.subscribe((res: PexelResponse) => this.storeResponse(res));
+	getNextPage() {
+		this.hasNextPage && this.getPhotoPage(this.pexelStore[this.currentUrl].next_page as string);
 	}
 
-	storeResponse(res: PexelResponse) {
-		this.pexelResponse = res;
-		this._currentPage = res.page;
-		this._nextPage = res.next_page ?? '';
-		this._prevPage = res.prev_page ?? '';
-		this._photos.next(this.pexelResponse.photos);
+	getPrevPage() {
+		this.hasPrevPage && this.getPhotoPage(this.pexelStore[this.currentUrl].prev_page as string);
+	}
+
+	private getPhotoPage(url: string) {
+		if (this.pexelStore[url]) {
+			this.currentUrl = url;
+			this.storeResponse(this.pexelStore[url]);
+		} else if (this.pexelStore[this.currentUrl]?.next_page) {
+			this.currentUrl = url;
+			this.pexelsService.getPicturesByUrl(url)
+				.subscribe((res: PexelResponse) => this.storeResponse(res));
+		}
+	}
+
+	private storeResponse(res: PexelResponse) {
+		// Very Simple caching - only keep 50 entries - better approach would be to use timestamp and
+		// replace the oldest entry with the new one.
+		const x = Object.keys(this.pexelStore);
+		(x.length > this.maxStoreEntries) && (delete this.pexelStore[x[0]]);
+
+		this.pexelStore[this.currentUrl] = res;
+		this._photos.next(res.photos);
+
+		console.log(this.pexelStore);
 	}
 }

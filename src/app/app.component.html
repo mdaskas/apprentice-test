@@ -7,30 +7,28 @@
   </header>
 
   <div class="search-container">
-    <mat-form-field>
+    <button mat-icon-button type="button" style="margin-right: auto; margin-left: 1rem" (click)="onPrev()"
+      [disabled]="!this.photoStore.hasPrevPage">
+      <mat-icon style="font-size: 2rem;">chevron_left</mat-icon>Prev
+    </button>
+
+    <mat-form-field style="margin: 0 auto">
       <mat-label>Search</mat-label>
-      <input type="search" matInput [(ngModel)]="search" placeholder="Enter Search String..." />
+      <input type="search" matInput [(ngModel)]="search" #searchInputEl placeholder="Enter Search String..." />
       <mat-hint align="start">Ex: 'people', 'places' or 'animals'</mat-hint>
-      <button mat-icon-button matSuffix (click)="onSearch()" [attr.aria-label]="'Search for photos'">
-        <mat-icon>search</mat-icon>
-      </button>
     </mat-form-field>
 
-    <div style="margin-left: 1rem;">
-      <button mat-icon-button type="button" style="margin-right: 2em;" (click)="onPrev()"
-        [disabled]="!this.photoStore.prevPage">
-        <mat-icon style="font-size: 2rem;">chevron_left</mat-icon>Prev
-      </button>
-      <button mat-icon-button (click)="onNext()" style="margin-right: 10px" [disabled]="!this.photoStore.nextPage">
-        Next<mat-icon style="font-size: 2rem;">chevron_right</mat-icon>
-      </button>
-    </div>
+    <button mat-icon-button (click)="onNext()" style="margin-left: auto; margin-right: 1.9rem"
+      [disabled]="!this.photoStore.hasNextPage">
+      Next<mat-icon style="font-size: 2rem;">chevron_right</mat-icon>
+    </button>
   </div>
 
   <div class="content" #scrollContent>
     <div *ngFor="let p of photos$ | async" class="photo-container">
       <span>Author: {{p.photographer}}</span>
-      <img [src]="p.src.small" (click)="onPhoto(p.src.large, p.photographer)" />
+      <img [src]="p.src.small" (click)="onPhoto(p.src.large, p.photographer)" [alt]="'photo by ' + p.photographer"
+        [title]="p.photographer" />
     </div>
   </div>
 
