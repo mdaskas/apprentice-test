@@ -1,13 +1,12 @@
 import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { fromEvent, Observable, Subject } from 'rxjs';
-import { debounceTime, filter, map, takeUntil } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map, takeUntil, tap, throttleTime } from 'rxjs/operators';
 
 import { PexelPhoto } from './core/models';
 import { PhotoStoreService } from './core/services/photo-store.service';
 import { PhotoModalComponent } from './shared/modals/photo-modal/photo-modal.component';
 
-// TODO	 need to get current page, & perPage from service
 @Component({
 	selector: 'app-root',
 	templateUrl: './app.component.html',
@@ -15,12 +14,11 @@ import { PhotoModalComponent } from './shared/modals/photo-modal/photo-modal.com
 })
 export class AppComponent implements AfterViewInit, OnDestroy {
 	@ViewChild('scrollContent') scrollEl: ElementRef<HTMLDivElement>;
+	@ViewChild('searchInputEl') searchInputEl: ElementRef<HTMLDivElement>;
 
 	search = '';
 	photos$: Observable<PexelPhoto[]>;
 	page = 1;
-	perPage = 30;
-	currentPage = 1;
 
 	destroy$ = new Subject<any>();
 
@@ -32,31 +30,36 @@ export class AppComponent implements AfterViewInit, OnDestroy {
 	}
 
 	ngAfterViewInit() {
-		fromEvent(this.scrollEl.nativeElement, 'scroll').pipe(
-			debounceTime(300),
-			filter((e: any) => !!((e.target.scrollHeight - e.target.scrollTop) < (e.target.offsetHeight * 1.03))),
-			filter(() => !!((this.currentPage === this.photoStore.currentPage) && this.photoStore.nextPage)),
-			takeUntil(this.destroy$)
-		).subscribe((e) => {
-			this.onNext();
-		});
-	}
+		fromEvent(this.searchInputEl.nativeElement, 'keyup')
+			.pipe(
+				map((e: any) => e?.target?.value),
+				filter(searchText => searchText && searchText.length > 2),
+				debounceTime(300),
+				distinctUntilChanged(),
+				takeUntil(this.destroy$)
+			).subscribe((searchText: string) => this.photoStore.getFirstPageWithQuery(searchText));
 
-	onSearch() {
-		this.photoStore.getPhotos(this.search, this.page, this.perPage);
+		fromEvent(this.scrollEl.nativeElement, 'scroll')
+			.pipe(
+				debounceTime(300),
+				filter((e: any) => !!((e.target.scrollHeight - e.target.scrollTop) < (e.target.offsetHeight * 1.03))),
+				filter(() => this.photoStore.hasNextPage),
+				throttleTime(1000),
+				takeUntil(this.destroy$)
+			).subscribe((e) => {
+				this.onNext();
+			});
 	}
 
 	onNext() {
-		if (this.photoStore.nextPage) {
-			this.currentPage += 1;
-			this.photoStore.getPhotoPage(this.photoStore.nextPage);
+		if (this.photoStore.hasNextPage) {
+			this.photoStore.getNextPage();
 		}
 	}
 
 	onPrev() {
-		if (this.photoStore.prevPage) {
-			this.currentPage -= 1;
-			this.photoStore.getPhotoPage(this.photoStore.prevPage);
+		if (this.photoStore.hasPrevPage) {
+			this.photoStore.getPrevPage();
 		}
 	}
 

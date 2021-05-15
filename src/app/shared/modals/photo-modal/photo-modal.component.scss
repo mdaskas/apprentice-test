@@ -1,0 +1,17 @@
+.modal-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.modal-header {
+  margin-left: auto;
+  margin-top: -0.5rem;
+  margin-right: 1rem;
+}
+
+.modal-content {
+  display: flex;
+  flex-direction: column;
+  margin: .75rem .75rem 0 .75rem;
+}

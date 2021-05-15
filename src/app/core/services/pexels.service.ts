@@ -1,6 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { Observable, of } from 'rxjs';
+import { catchError, retry } from 'rxjs/operators';
 import { PexelResponse } from '../models/pexel-response.model';
 
 @Injectable({
@@ -9,12 +11,16 @@ import { PexelResponse } from '../models/pexel-response.model';
 export class PexelsService {
 	private baseUrl = 'https://api.pexels.com/v1/';
 
-	constructor(private http: HttpClient) { }
+	constructor(private http: HttpClient, private snackBar: MatSnackBar) { }
 
-	getPictures(query: string = 'people', page: number = 1, perPage: number = 30): Observable<PexelResponse> {
-		return this.http.get<PexelResponse>(`${this.baseUrl}search?query=${query}&page=${page}&per_page=${perPage}`);
-	}
-	getPicturesByUrl(url: string): Observable<PexelResponse> {
-		return this.http.get<PexelResponse>(url);
+	getPicturesByUrl(url: string): Observable<PexelResponse | any> {
+		return this.http.get<PexelResponse>(url)
+			.pipe(
+				retry(1),
+				catchError(err => {
+					this.snackBar.open(err.message, 'Close', { duration: 3000 });
+					return of(err.message);
+				})
+			);
 	}
 }
