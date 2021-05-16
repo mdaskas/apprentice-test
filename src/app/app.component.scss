@@ -9,16 +9,11 @@ header {
   height: 4rem;
   background-color: lightblue;
 
-  //   div {
   height: 100%;
   display: flex;
   flex-direction: column;
   justify-items: center;
   align-items: center;
-
-  //   h1 {
-  //     margin: 1rem auto;
-  //   }
 }
 
 .search-container {
@@ -27,6 +22,16 @@ header {
   flex-wrap: wrap;
   justify-content: center;
   margin-top: .5rem;
+
+  .prev-button {
+    margin-right: auto;
+    margin-left: 1rem;
+  }
+
+  .next-button {
+    margin-left: auto;
+    margin-right: 1.9rem;
+  }
 }
 
 .content {
@@ -42,7 +47,7 @@ header {
   .photo-container {
     display: flex;
     flex-direction: column;
-    margin: 0.5rem 0.5rem 0 0.5rem;
+    margin: 0.5rem 0.5rem 0.8rem 0.5rem;
   }
 }
 

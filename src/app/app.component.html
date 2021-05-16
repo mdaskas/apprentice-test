@@ -7,7 +7,7 @@
   </header>
 
   <div class="search-container">
-    <button mat-icon-button type="button" style="margin-right: auto; margin-left: 1rem" (click)="onPrev()"
+    <button mat-icon-button type="button" class="prev-button" (click)="onPrev()"
       [disabled]="!this.photoStore.hasPrevPage">
       <mat-icon style="font-size: 2rem;">chevron_left</mat-icon>Prev
     </button>
@@ -18,8 +18,7 @@
       <mat-hint align="start">Ex: 'people', 'places' or 'animals'</mat-hint>
     </mat-form-field>
 
-    <button mat-icon-button (click)="onNext()" style="margin-left: auto; margin-right: 1.9rem"
-      [disabled]="!this.photoStore.hasNextPage">
+    <button mat-icon-button (click)="onNext()" class="next-button" [disabled]="!this.photoStore.hasNextPage">
       Next<mat-icon style="font-size: 2rem;">chevron_right</mat-icon>
     </button>
   </div>
